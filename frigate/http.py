@@ -1034,6 +1034,25 @@ def recording_clip(camera_name, start_ts, end_ts):
     return response
 
 
+def summary_recording_clip(camera_name, start_ts, end_ts):
+
+    ffmpeg_cmd = [
+        "ffmpeg",
+        "-y",
+        "-protocol_whitelist",
+        "pipe,file",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        "/dev/stdin",
+        "-vf",
+        "setpts=0.25*PTS,scale=640:480",
+        "-r 5" -an output.mp4
+    ]
+
+
 @bp.route("/vod/<camera_name>/start/<int:start_ts>/end/<int:end_ts>")
 @bp.route("/vod/<camera_name>/start/<float:start_ts>/end/<float:end_ts>")
 def vod_ts(camera_name, start_ts, end_ts):
