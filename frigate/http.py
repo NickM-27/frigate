@@ -530,7 +530,7 @@ def event_clip(id):
 
 
 @bp.route("/events/<id>/summary.mp4")
-def summary_event_clip(camera_name, start_ts, end_ts):
+def summary_event_clip(id):
     download = request.args.get("download", type=bool)
 
     try:
