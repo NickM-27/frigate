@@ -529,6 +529,41 @@ def event_clip(id):
     return response
 
 
+@bp.route("/events/<id>/summary.mp4")
+def summary_event_clip(camera_name, start_ts, end_ts):
+    download = request.args.get("download", type=bool)
+
+    try:
+        event: Event = Event.get(Event.id == id)
+    except DoesNotExist:
+        return "Event not found.", 404
+
+    if not event.has_clip:
+        return "Clip not available", 404
+
+    file_name = f"{event.camera}-{id}-summary.mp4"
+    clip_path = os.path.join(CLIPS_DIR, file_name)
+
+    if not os.path.isfile(clip_path):
+        end_ts = (
+            datetime.now().timestamp() if event.end_time is None else event.end_time
+        )
+        return summary_recording_clip(event.camera, event.start_time, end_ts)
+
+    response = make_response()
+    response.headers["Content-Description"] = "File Transfer"
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Content-Type"] = "video/mp4"
+    if download:
+        response.headers["Content-Disposition"] = "attachment; filename=%s" % file_name
+    response.headers["Content-Length"] = os.path.getsize(clip_path)
+    response.headers[
+        "X-Accel-Redirect"
+    ] = f"/clips/{file_name}"  # nginx: http://wiki.nginx.org/NginxXSendfile
+
+    return response
+
+
 @bp.route("/events")
 def events():
     camera = request.args.get("camera", "all")
@@ -1034,7 +1069,35 @@ def recording_clip(camera_name, start_ts, end_ts):
     return response
 
 
+@bp.route("/<camera_name>/start/<int:start_ts>/end/<int:end_ts>/summary.mp4")
+@bp.route("/<camera_name>/start/<float:start_ts>/end/<float:end_ts>/summary.mp4")
 def summary_recording_clip(camera_name, start_ts, end_ts):
+    download = request.args.get("download", type=bool)
+
+    recordings = (
+        Recordings.select()
+        .where(
+            (Recordings.start_time.between(start_ts, end_ts))
+            | (Recordings.end_time.between(start_ts, end_ts))
+            | ((start_ts > Recordings.start_time) & (end_ts < Recordings.end_time))
+        )
+        .where(Recordings.camera == camera_name)
+        .order_by(Recordings.start_time.asc())
+    )
+
+    playlist_lines = []
+    clip: Recordings
+    for clip in recordings:
+        playlist_lines.append(f"file '{clip.path}'")
+        # if this is the starting clip, add an inpoint
+        if clip.start_time < start_ts:
+            playlist_lines.append(f"inpoint {int(start_ts - clip.start_time)}")
+        # if this is the ending clip, add an outpoint
+        if clip.end_time > end_ts:
+            playlist_lines.append(f"outpoint {int(end_ts - clip.start_time)}")
+
+    file_name = f"summary_{camera_name}_{start_ts}-{end_ts}.mp4"
+    path = f"/tmp/cache/{file_name}"
 
     ffmpeg_cmd = [
         "ffmpeg",
@@ -1049,8 +1112,38 @@ def summary_recording_clip(camera_name, start_ts, end_ts):
         "/dev/stdin",
         "-vf",
         "setpts=0.25*PTS,scale=640:480",
-        "-r 5" -an output.mp4
+        "-r",
+        "5",
+        "-an",
+        path,
     ]
+    p = sp.run(
+        ffmpeg_cmd,
+        input="\n".join(playlist_lines),
+        encoding="ascii",
+        capture_output=True,
+    )
+
+    if p.returncode != 0:
+        logger.error(p.stderr)
+        return f"Could not create clip from recordings for {camera_name}.", 500
+    else:
+        logger.debug(
+            f"Ignoring subsequent request for {path} as it already exists in the cache."
+        )
+
+    response = make_response()
+    response.headers["Content-Description"] = "File Transfer"
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Content-Type"] = "video/mp4"
+    if download:
+        response.headers["Content-Disposition"] = "attachment; filename=%s" % file_name
+    response.headers["Content-Length"] = os.path.getsize(path)
+    response.headers[
+        "X-Accel-Redirect"
+    ] = f"/cache/{file_name}"  # nginx: http://wiki.nginx.org/NginxXSendfile
+
+    return response
 
 
 @bp.route("/vod/<camera_name>/start/<int:start_ts>/end/<int:end_ts>")
