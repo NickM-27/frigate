@@ -29,6 +29,10 @@ arm64:
 build: version amd64 arm64
 	docker buildx build --platform linux/arm64/v8,linux/amd64 --target=frigate --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) --file docker/main/Dockerfile .
 
+amd64-push: version
+	docker build --platform linux/amd64 --target=frigate --tag crzynik/frigate:latest --file docker/main/Dockerfile .
+	docker push crzynik/frigate:latest
+
 push: push-boards
 	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --target=frigate --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) --file docker/main/Dockerfile .
 
