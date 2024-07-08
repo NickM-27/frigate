@@ -22,11 +22,11 @@ from pydantic import ValidationError
 from frigate.api.app import create_app
 from frigate.api.auth import hash_password
 from frigate.comms.config_updater import ConfigPublisher
-from frigate.comms.detections_updater import DetectionProxy
 from frigate.comms.dispatcher import Communicator, Dispatcher
 from frigate.comms.inter_process import InterProcessCommunicator
 from frigate.comms.mqtt import MqttClient
 from frigate.comms.ws import WebSocketClient
+from frigate.comms.zmq_proxy import ZmqProxy
 from frigate.config import FrigateConfig
 from frigate.const import (
     CACHE_DIR,
@@ -37,6 +37,7 @@ from frigate.const import (
     MODEL_CACHE_DIR,
     RECORD_DIR,
 )
+from frigate.embeddings import EmbeddingsContext, manage_embeddings
 from frigate.events.audio import listen_to_audio
 from frigate.events.cleanup import EventCleanup
 from frigate.events.external import ExternalEventProcessor
@@ -316,7 +317,21 @@ class FrigateApp:
         self.review_segment_process = review_segment_process
         review_segment_process.start()
         self.processes["review_segment"] = review_segment_process.pid or 0
-        logger.info(f"Recording process started: {review_segment_process.pid}")
+        logger.info(f"Review process started: {review_segment_process.pid}")
+
+    def init_embeddings_manager(self) -> None:
+        # Create a client for other processes to use
+        self.embeddings = EmbeddingsContext()
+        embedding_process = mp.Process(
+            target=manage_embeddings,
+            name="embeddings_manager",
+            args=(self.config,),
+        )
+        embedding_process.daemon = True
+        self.embedding_process = embedding_process
+        embedding_process.start()
+        self.processes["embeddings"] = embedding_process.pid or 0
+        logger.info(f"Embedding process started: {embedding_process.pid}")
 
     def bind_database(self) -> None:
         """Bind db to the main process."""
@@ -362,12 +377,13 @@ class FrigateApp:
     def init_inter_process_communicator(self) -> None:
         self.inter_process_communicator = InterProcessCommunicator()
         self.inter_config_updater = ConfigPublisher()
-        self.inter_detection_proxy = DetectionProxy()
+        self.inter_zmq_proxy = ZmqProxy()
 
     def init_web_server(self) -> None:
         self.flask_app = create_app(
             self.config,
             self.db,
+            self.embeddings,
             self.detected_frames_processor,
             self.storage_maintainer,
             self.onvif_controller,
@@ -678,6 +694,7 @@ class FrigateApp:
             self.init_onvif()
             self.init_recording_manager()
             self.init_review_segment_manager()
+            self.init_embeddings_manager()
             self.init_go2rtc()
             self.bind_database()
             self.check_db_data_migrations()
@@ -794,10 +811,13 @@ class FrigateApp:
         self.frigate_watchdog.join()
         self.db.stop()
 
+        # Save embeddings stats to disk
+        self.embeddings.save_stats()
+
         # Stop Communicators
         self.inter_process_communicator.stop()
         self.inter_config_updater.stop()
-        self.inter_detection_proxy.stop()
+        self.inter_zmq_proxy.stop()
 
         while len(self.detection_shms) > 0:
             shm = self.detection_shms.pop()
