@@ -7,7 +7,7 @@ from playhouse.sqliteq import SqliteQueueDatabase
 from frigate.config import FrigateConfig
 from frigate.models import Recordings, ReviewSegment
 from frigate.record.maintainer import RecordingMaintainer
-from frigate.util import Process as FrigateProcess
+from frigate.util.process import FrigateProcess
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class RecordProcess(FrigateProcess):
         self.config = config
 
     def run(self) -> None:
-        self.pre_run_setup()
+        self.pre_run_setup(self.config.logger)
         db = SqliteQueueDatabase(
             self.config.database.path,
             pragmas={

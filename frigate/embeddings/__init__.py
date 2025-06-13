@@ -16,9 +16,9 @@ from frigate.const import CONFIG_DIR, FACE_DIR
 from frigate.data_processing.types import DataProcessorMetrics
 from frigate.db.sqlitevecq import SqliteVecQueueDatabase
 from frigate.models import Event
-from frigate.util import Process as FrigateProcess
 from frigate.util.builtin import serialize
 from frigate.util.classification import kickoff_model_training
+from frigate.util.process import FrigateProcess
 
 from .maintainer import EmbeddingMaintainer
 from .util import ZScoreNormalization
@@ -35,7 +35,7 @@ class EmbeddingProcess(FrigateProcess):
         self.metrics = metrics
 
     def run(self) -> None:
-        self.pre_run_setup()
+        self.pre_run_setup(self.config.logger)
         maintainer = EmbeddingMaintainer(
             self.config,
             self.metrics,
