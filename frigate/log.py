@@ -59,6 +59,9 @@ def _stop_logging() -> None:
     if log_listener is not None:
         log_listener.stop()
         log_listener = None
+    if manager is not None:
+        manager.shutdown()
+        manager = None
 
 
 # When a multiprocessing.Process exits, python tries to flush stdout and stderr. However, if the

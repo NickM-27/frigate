@@ -7,6 +7,7 @@ import shutil
 from multiprocessing import Queue
 from multiprocessing.managers import DictProxy, SyncManager
 from multiprocessing.synchronize import Event as MpEvent
+from pathlib import Path
 from typing import Optional
 
 import psutil
@@ -584,6 +585,9 @@ class FrigateApp:
 
     def stop(self) -> None:
         logger.info("Stopping...")
+
+        # used by the docker healthcheck
+        Path("/dev/shm/.frigate-is-stopping").touch()
 
         self.stop_event.set()
 

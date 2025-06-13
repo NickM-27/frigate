@@ -45,6 +45,8 @@ face_recognition:
   enabled: true
 ```
 
+Like the other real-time processors in Frigate, face recognition runs on the camera stream defined by the `detect` role in your config. To ensure optimal performance, select a suitable resolution for this stream in your camera's firmware that fits your specific scene and requirements.
+
 ## Advanced Configuration
 
 Fine-tune face recognition with these optional parameters at the global level of your config. The only optional parameters that can be set at the camera level are `enabled` and `min_area`.
@@ -74,8 +76,10 @@ Fine-tune face recognition with these optional parameters at the global level of
 
 ## Usage
 
+Follow these steps to begin:
+
 1. **Enable face recognition** in your configuration file and restart Frigate.
-2. **Upload your face** using the **Add Face** button's wizard in the Face Library section of the Frigate UI.
+2. **Upload one face** using the **Add Face** button's wizard in the Face Library section of the Frigate UI. Read below for the best practices on expanding your training set.
 3. When Frigate detects and attempts to recognize a face, it will appear in the **Train** tab of the Face Library, along with its associated recognition confidence.
 4. From the **Train** tab, you can **assign the face** to a new or existing person to improve recognition accuracy for the future.
 
@@ -128,6 +132,31 @@ You do not want to train images that are 90%+ as these are already being confide
 Once front-facing images are performing well, start choosing slightly off-angle images to include for training. It is important to still choose images where enough face detail is visible to recognize someone, and you still only want to train on images that score lower.
 
 ## FAQ
+
+### How do I debug Face Recognition issues?
+
+Start with the [Usage](#usage) section and re-read the [Model Requirements](#model-requirements) above.
+
+1. Ensure `person` is being _detected_. A `person` will automatically be scanned by Frigate for a face. Any detected faces will appear in the Train tab in the Frigate UI's Face Library.
+
+   If you are using a Frigate+ or `face` detecting model:
+
+   - Watch the debug view (Settings --> Debug) to ensure that `face` is being detected along with `person`.
+   - You may need to adjust the `min_score` for the `face` object if faces are not being detected.
+
+   If you are **not** using a Frigate+ or `face` detecting model:
+
+   - Check your `detect` stream resolution and ensure it is sufficiently high enough to capture face details on `person` objects.
+   - You may need to lower your `detection_threshold` if faces are not being detected.
+
+2. Any detected faces will then be _recognized_.
+
+   - Make sure you have trained at least one face per the recommendations above.
+   - Adjust `recognition_threshold` settings per the suggestions [above](#advanced-configuration).
+
+### Detection does not work well with blurry images?
+
+Accuracy is definitely a going to be improved with higher quality cameras / streams. It is important to look at the DORI (Detection Observation Recognition Identification) range of your camera, if that specification is posted. This specification explains the distance from the camera that a person can be detected, observed, recognized, and identified. The identification range is the most relevant here, and the distance listed by the camera is the furthest that face recognition will realistically work.
 
 ### Why can't I bulk upload photos?
 

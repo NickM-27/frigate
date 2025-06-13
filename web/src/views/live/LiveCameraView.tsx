@@ -123,6 +123,7 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { Trans, useTranslation } from "react-i18next";
+import { useDocDomain } from "@/hooks/use-doc-domain";
 
 type LiveCameraViewProps = {
   config?: FrigateConfig;
@@ -1059,6 +1060,7 @@ function FrigateCameraFeatures({
   cameraEnabled,
 }: FrigateCameraFeaturesProps) {
   const { t } = useTranslation(["views/live", "components/dialog"]);
+  const { getLocaleDocUrl } = useDocDomain();
 
   const { payload: detectState, send: sendDetect } = useDetectState(
     camera.name,
@@ -1336,7 +1338,7 @@ function FrigateCameraFeatures({
                         })}
                         <div className="mt-2 flex items-center text-primary">
                           <Link
-                            to="https://docs.frigate.video/configuration/live"
+                            to={getLocaleDocUrl("configuration/live")}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline"
@@ -1414,7 +1416,7 @@ function FrigateCameraFeatures({
                                 {t("stream.audio.tips.title")}
                                 <div className="mt-2 flex items-center text-primary">
                                   <Link
-                                    to="https://docs.frigate.video/configuration/live"
+                                    to={getLocaleDocUrl("configuration/live")}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline"
@@ -1455,7 +1457,9 @@ function FrigateCameraFeatures({
                                   {t("stream.twoWayTalk.tips")}
                                   <div className="mt-2 flex items-center text-primary">
                                     <Link
-                                      to="https://docs.frigate.video/configuration/live/#webrtc-extra-configuration"
+                                      to={getLocaleDocUrl(
+                                        "configuration/live/#webrtc-extra-configuration",
+                                      )}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline"
@@ -1672,7 +1676,7 @@ function FrigateCameraFeatures({
                     })}
                     <div className="mt-2 flex items-center text-primary">
                       <Link
-                        to="https://docs.frigate.video/configuration/live"
+                        to={getLocaleDocUrl("configuration/live")}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline"
@@ -1743,7 +1747,7 @@ function FrigateCameraFeatures({
                           {t("stream.audio.tips.title")}
                           <div className="mt-2 flex items-center text-primary">
                             <Link
-                              to="https://docs.frigate.video/configuration/live"
+                              to={getLocaleDocUrl("configuration/live")}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline"
@@ -1784,7 +1788,9 @@ function FrigateCameraFeatures({
                             {t("stream.twoWayTalk.tips")}
                             <div className="mt-2 flex items-center text-primary">
                               <Link
-                                to="https://docs.frigate.video/configuration/live/#webrtc-extra-configuration"
+                                to={getLocaleDocUrl(
+                                  "configuration/live/#webrtc-extra-configuration",
+                                )}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline"

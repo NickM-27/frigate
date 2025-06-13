@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { isDesktop } from "react-device-detect";
+import { useDocDomain } from "@/hooks/use-doc-domain";
 
 type CameraSettingsViewProps = {
   selectedCamera: string;
@@ -57,6 +58,7 @@ export default function CameraSettingsView({
   setUnsavedChanges,
 }: CameraSettingsViewProps) {
   const { t } = useTranslation(["views/settings"]);
+  const { getLocaleDocUrl } = useDocDomain();
 
   const { data: config, mutate: updateConfig } =
     useSWR<FrigateConfig>("config");
@@ -420,7 +422,7 @@ export default function CameraSettingsView({
                   </p>
                   <div className="flex items-center text-primary">
                     <Link
-                      to="https://docs.frigate.video/configuration/review"
+                      to={getLocaleDocUrl("configuration/review")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline"

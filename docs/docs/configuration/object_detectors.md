@@ -1024,7 +1024,7 @@ x.export()
 
 ### Downloading YOLO-NAS Model
 
-You can build and download a compatible model with pre-trained weights using [this notebook](https://github.com/blakeblackshear/frigate/blob/dev/notebooks/YOLO_NAS_Pretrained_Export.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/blakeblackshear/frigate/blob/dev/notebooks/YOLO_NAS_Pretrained_Export.ipynb).
+You can build and download a compatible model with pre-trained weights using [this notebook](https://github.com/blakeblackshear/frigate/blob/dev/notebooks/YOLO_NAS_Pretrained_Export.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/blakeblackshear/frigate/blob/dev/notebooks/YOLO_NAS_Pretrained_Export.ipynb) which can be run directly in [Google Colab](https://colab.research.google.com/github/blakeblackshear/frigate/blob/dev/notebooks/YOLO_NAS_Pretrained_Export.ipynb).
 
 :::warning
 
@@ -1053,13 +1053,14 @@ python3 yolo_to_onnx.py -m yolov7-320
 
 #### YOLOv9
 
-YOLOv9 models can be exported using the below code or they [can be downloaded from hugging face](https://huggingface.co/Xenova/yolov9-onnx/tree/main)
+YOLOv9 models can be exported using the below code
 
 ```sh
 git clone https://github.com/WongKinYiu/yolov9
 cd yolov9
 
 # setup the virtual environment so installation doesn't affect main system
+# NOTE: Virtual environment must be using Python 3.11 or older.
 python3 -m venv ./
 bin/pip install -r requirements.txt
 bin/pip install onnx onnxruntime onnx-simplifier>=0.4.1
