@@ -350,6 +350,9 @@ class TrackedObject:
 
         self.obj_data.update(obj_data)
         self.current_zones = current_zones
+        logger.debug(
+            f"{self.camera_config.name}: Updating {obj_data['id']}: thumb update? {thumb_update}, significant change? {significant_change}, path update? {path_update}, autotracker update? {autotracker_update} "
+        )
         return (thumb_update, significant_change, path_update, autotracker_update)
 
     def to_dict(self):
@@ -416,7 +419,7 @@ class TrackedObject:
 
         try:
             best_frame = cv2.cvtColor(
-                self.frame_cache[self.thumbnail_data["frame_time"]],
+                self.frame_cache[self.thumbnail_data["frame_time"]]["frame"],
                 cv2.COLOR_YUV2BGR_I420,
             )
         except KeyError:
@@ -445,7 +448,7 @@ class TrackedObject:
 
         try:
             best_frame = cv2.cvtColor(
-                self.frame_cache[self.thumbnail_data["frame_time"]],
+                self.frame_cache[self.thumbnail_data["frame_time"]]["frame"],
                 cv2.COLOR_YUV2BGR_I420,
             )
         except KeyError:
