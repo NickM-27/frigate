@@ -34,6 +34,7 @@ import { useSearchEffect } from "@/hooks/use-overlay-state";
 import { useTranslation } from "react-i18next";
 
 import { useDocDomain } from "@/hooks/use-doc-domain";
+import { getTranslatedLabel } from "@/utils/i18n";
 
 type MasksAndZoneViewProps = {
   selectedCamera: string;
@@ -316,7 +317,7 @@ export default function MasksAndZonesView({
               camera: cameraConfig.name,
               name: t("masksAndZones.objectMaskLabel", {
                 number: globalObjectMasksCount + index + 1,
-                label: t(objectName, { ns: "objects" }),
+                label: getTranslatedLabel(objectName),
               }),
               objects: [objectName],
               points: interpolatePoints(
