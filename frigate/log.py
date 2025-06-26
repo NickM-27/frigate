@@ -83,6 +83,7 @@ def apply_log_levels(default: str, log_levels: dict[str, LogLevel]) -> None:
     log_levels = {
         "absl": LogLevel.error,
         "httpx": LogLevel.error,
+        "matplotlib": LogLevel.error,
         "tensorflow": LogLevel.error,
         "werkzeug": LogLevel.error,
         "ws4py": LogLevel.error,
@@ -196,7 +197,7 @@ class LogRedirect(io.StringIO):
 
 
 @contextmanager
-def redirect_fd_to_queue(queue: Queue[str]) -> Generator[None, None, None]:
+def __redirect_fd_to_queue(queue: Queue[str]) -> Generator[None, None, None]:
     """Redirect file descriptor 1 (stdout) to a pipe and capture output in a queue."""
     stdout_fd = os.dup(1)
     read_fd, write_fd = os.pipe()
@@ -252,7 +253,7 @@ def redirect_output_to_logger(logger: logging.Logger, level: int) -> Any:
 
             try:
                 # Redirect C-level stdout
-                with redirect_fd_to_queue(queue):
+                with __redirect_fd_to_queue(queue):
                     result = func(*args, **kwargs)
             finally:
                 # Restore Python stdout/stderr
