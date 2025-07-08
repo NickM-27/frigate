@@ -79,15 +79,6 @@ target "trt-deps" {
   inherits = ["_build_args"]
 }
 
-target "tensorrt-base" {
-  dockerfile = "docker/tensorrt/Dockerfile.base"
-  context = "."
-  contexts = {
-    deps = "target:deps",
-  }
-  inherits = ["_build_args"]
-}
-
 target "tensorrt" {
   dockerfile = "docker/tensorrt/Dockerfile.${ARCH}"
   context = "."
