@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import resource
 import signal
 import subprocess as sp
 import traceback
@@ -256,7 +257,7 @@ def get_amd_gpu_stats() -> Optional[dict[str, str]]:
         return results
 
 
-def get_intel_gpu_stats(sriov: bool) -> Optional[dict[str, str]]:
+def get_intel_gpu_stats(intel_gpu_device: Optional[str]) -> Optional[dict[str, str]]:
     """Get stats using intel_gpu_top."""
 
     def get_stats_manually(output: str) -> dict[str, str]:
@@ -303,8 +304,8 @@ def get_intel_gpu_stats(sriov: bool) -> Optional[dict[str, str]]:
         "1",
     ]
 
-    if sriov:
-        intel_gpu_top_command += ["-d", "sriov"]
+    if intel_gpu_device:
+        intel_gpu_top_command += ["-d", intel_gpu_device]
 
     try:
         p = sp.run(
@@ -751,3 +752,19 @@ def process_logs(
         log_lines.append(dedup_message)
 
     return len(log_lines), log_lines[start:end]
+
+
+def set_file_limit() -> None:
+    # Newer versions of containerd 2.X+ impose a very low soft file limit of 1024
+    # This applies to OSs like HA OS (see https://github.com/home-assistant/operating-system/issues/4110)
+    # Attempt to increase this limit
+    soft_limit = int(os.getenv("SOFT_FILE_LIMIT", "65536") or "65536")
+
+    current_soft, current_hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    logger.debug(f"Current file limits - Soft: {current_soft}, Hard: {current_hard}")
+
+    new_soft = min(soft_limit, current_hard)
+    resource.setrlimit(resource.RLIMIT_NOFILE, (new_soft, current_hard))
+    logger.debug(
+        f"File limit set. New soft limit: {new_soft}, Hard limit remains: {current_hard}"
+    )
