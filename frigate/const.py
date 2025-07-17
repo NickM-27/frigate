@@ -27,6 +27,7 @@ DEFAULT_ATTRIBUTE_LABEL_MAP = {
     "car": [
         "amazon",
         "an_post",
+        "canada_post",
         "dhl",
         "dpd",
         "fedex",
@@ -36,6 +37,7 @@ DEFAULT_ATTRIBUTE_LABEL_MAP = {
         "postnl",
         "postnord",
         "purolator",
+        "royal_mail",
         "ups",
         "usps",
     ],
