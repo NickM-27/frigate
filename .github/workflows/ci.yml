@@ -6,6 +6,8 @@ on:
     branches:
       - dev
       - master
+      - deploy
+      - deploy-next
     paths-ignore:
       - "docs/**"
 
@@ -161,7 +163,7 @@ jobs:
           targets: tensorrt
           files: docker/tensorrt/trt.hcl
           set: |
-            tensorrt.tags=${{ steps.setup.outputs.image-name }}-tensorrt
+            tensorrt.tags=${{ steps.setup.outputs.image-name }}trt
             *.cache-from=type=registry,ref=${{ steps.setup.outputs.cache-name }}-tensorrt
             *.cache-to=type=registry,ref=${{ steps.setup.outputs.cache-name }}-tensorrt,mode=max
       - name: AMD/ROCm general build
