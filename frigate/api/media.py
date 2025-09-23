@@ -711,7 +711,7 @@ def vod_ts(camera_name: str, start_ts: float, end_ts: float):
             "discontinuity": False,
             "consistentSequenceMediaInfo": True,
             "durations": durations,
-            "segment_duration": max(durations),
+            "segmentDuration": max(durations),
             "sequences": [{"clips": clips}],
         }
     )
